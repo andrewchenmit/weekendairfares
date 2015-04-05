@@ -5,8 +5,6 @@ from selenium.webdriver.common.keys import Keys
 
 url_template = 'https://www.google.com/flights/#search;f={origin};t={destination};d={depart_date};r={return_date};ti=t{depart_times},l{arrival_times}'
 
-destinations = ["AUS", "PDX", "CUN"]
-
 def generate_weekend_dates(num_weeks):
   weekend_dates = []
   nearest_friday = datetime.date.today() + datetime.timedelta( (4-datetime.date.today().weekday()) %7)
@@ -19,7 +17,10 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-weekend_dates = generate_weekend_dates(4)
+destinations = ["AUS", "PDX", "CUN"]
+weekend_dates = generate_weekend_dates(1)
+#destinations = ["AUS"]
+#weekend_dates = generate_weekend_dates(1)
 
 for d in destinations:
   for weekend in weekend_dates:
@@ -39,8 +40,16 @@ for d in destinations:
     best_flights = driver.find_elements_by_css_selector(".PNIT24B-c-Qb")
     if len(best_flights) == 0:
       best_flights = driver.find_elements_by_css_selector(".PNIT24B-c-H")
+
+    flights_by_price = {}
+    prices = []
     for flight in best_flights:
       infos = flight.text.split("\n")
       if not "more expensive" in infos[0]:
-        print infos
+        price = int(infos[0][1:])
+        flights_by_price[price] = infos
+        prices.append(price)
+    best_flight = flights_by_price[min(prices)]
+    print best_flight
     driver.close()
+

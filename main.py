@@ -1,16 +1,46 @@
+import datetime
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-url = 'https://www.google.com/flights/#search;f=SFO;t=CUN;d=2015-05-10;r=2015-05-11;ti=,l1200-2200'
+url_template = 'https://www.google.com/flights/#search;f={origin};t={destination};d={depart_date};r={return_date};ti=t{depart_times},l{arrival_times}'
 
-driver = webdriver.Chrome('/Applications/chromedriver')
-driver.get(url)
+destinations = ["AUS", "PDX", "CUN"]
 
-time.sleep(2)
+def generate_weekend_dates(num_weeks):
+  weekend_dates = []
+  nearest_friday = datetime.date.today() + datetime.timedelta( (4-datetime.date.today().weekday()) %7)
+  for i in xrange(num_weeks):
+    friday = nearest_friday + datetime.timedelta(i*7)
+    sunday = friday + datetime.timedelta(2)
+    weekend_dates.append([
+      str(friday.year)+"-"+str('{:02d}'.format(friday.month))+"-"+str('{:02d}'.format(friday.day)),
+      str(sunday.year)+"-"+str('{:02d}'.format(sunday.month))+"-"+str('{:02d}'.format(sunday.day))
+      ])
+  return weekend_dates
 
-best_flights = driver.find_elements_by_css_selector(".PNIT24B-c-Qb")
-for flight in best_flights:
-  infos = flight.text.split("\n")
-  print infos  
-driver.close()
+weekend_dates = generate_weekend_dates(4)
+
+for d in destinations:
+  for weekend in weekend_dates:
+    url = url_template.format(
+      origin="SFO",
+      destination=d,
+      depart_date=weekend[0],
+      return_date=weekend[1],
+      depart_times="1900-2400",
+      arrival_times="1200-2200")
+    print url
+    driver = webdriver.Chrome('/Applications/chromedriver')
+    driver.get(url)
+
+    time.sleep(2)
+
+    best_flights = driver.find_elements_by_css_selector(".PNIT24B-c-Qb")
+    if len(best_flights) == 0:
+      best_flights = driver.find_elements_by_css_selector(".PNIT24B-c-H")
+    for flight in best_flights:
+      infos = flight.text.split("\n")
+      if not "more expensive" in infos[0]:
+        print infos
+    driver.close()

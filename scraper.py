@@ -70,21 +70,21 @@ for d in destinations:
             prices.append(price)
       best_flight = flights_by_price[min(prices)]
 
-    if len(best_flight) > 1 :
-      del best_flight[1]
+      if len(best_flight) > 1 :
+        del best_flight[1]
 
-    best_flight = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + best_flight
-    print best_flight
+      best_flight = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + best_flight
+      print best_flight
 
-    delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (best_flight[0], best_flight[1], best_flight[3])
+      delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (best_flight[0], best_flight[1], best_flight[3])
 
-    execute_sql(delete_sql)
+      execute_sql(delete_sql)
 
-    insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (best_flight[0], best_flight[1], best_flight[2], best_flight[3], best_flight[4], best_flight[5], best_flight[6], best_flight[7], best_flight[8])
+      insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (best_flight[0], best_flight[1], best_flight[2], best_flight[3], best_flight[4], best_flight[5], best_flight[6], best_flight[7], best_flight[8])
 
-    print insert_sql
+      print insert_sql
 
-    execute_sql(insert_sql)
+      execute_sql(insert_sql)
 
 db.close()
 driver.close()

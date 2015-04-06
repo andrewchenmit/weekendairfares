@@ -28,8 +28,8 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-destinations = ["AUS", "PDX", "CUN"]
-weekend_dates = generate_weekend_dates(24)
+destinations = ["AUS", "PDX", "CUN", "YVR", "LAS", "SAN", "PHX", "SLC", "SEA", "LAX", "BOS"]
+weekend_dates = generate_weekend_dates(48)
 #weekend_dates = [["2015-08-21","2015-08-23"]]
 #destinations = ["AUS"]
 #weekend_dates = generate_weekend_dates(1)
@@ -65,11 +65,14 @@ for d in destinations:
         infos = flight.text.split("\n")
         if not "more expensive" in infos[0]:
           price = int(infos[0][1:])
-          flights_by_price[price] = infos
-          prices.append(price)
+          if price not in flights_by_price:
+            flights_by_price[price] = infos
+            prices.append(price)
       best_flight = flights_by_price[min(prices)]
 
-    del best_flight[1]
+    if len(best_flight) > 1 :
+      del best_flight[1]
+
     best_flight = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + best_flight
     print best_flight
 

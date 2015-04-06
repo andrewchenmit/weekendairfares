@@ -1,5 +1,6 @@
 import datetime
 import time
+import MySQLdb
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
@@ -23,6 +24,11 @@ weekend_dates = generate_weekend_dates(24)
 #destinations = ["AUS"]
 #weekend_dates = generate_weekend_dates(1)
 
+db = MySQLdb.connect("173.194.80.20","root","roos","guestbook")
+cursor=db.cursor()
+
+driver = webdriver.Chrome('/Applications/chromedriver')
+
 for d in destinations:
   for weekend in weekend_dates:
     url = url_template.format(
@@ -33,7 +39,6 @@ for d in destinations:
       depart_times="1900-2400",
       arrival_times="1200-2200")
     print url
-    driver = webdriver.Chrome('/Applications/chromedriver')
     driver.get(url)
 
     time.sleep(2)
@@ -55,5 +60,7 @@ for d in destinations:
       best_flight = flights_by_price[min(prices)]
 
     print best_flight
-    driver.close()
+driver.close()
 
+#sql="""CREATE TABLE test(andrew INT, jenny INT)"""
+#cursor.execute(sql)

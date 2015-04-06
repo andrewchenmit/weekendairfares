@@ -64,7 +64,7 @@ for d in destinations:
       for flight in best_flights:
         infos = flight.text.split("\n")
         if not "more expensive" in infos[0]:
-          price = int(infos[0].replace(',', ''))
+          price = int(infos[0][1:].replace(',', ''))
           if price not in flights_by_price:
             flights_by_price[price] = infos
             prices.append(price)

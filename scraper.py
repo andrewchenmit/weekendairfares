@@ -39,10 +39,10 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'BOS']
-weekend_dates = generate_weekend_dates(48)
-#weekend_dates = [['2015-05-29','2015-05-31']]
-#destinations = ['LAS']
+#destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'BOS']
+#weekend_dates = generate_weekend_dates(48)
+weekend_dates = [['2015-05-29','2015-05-31']]
+destinations = ['LAS']
 #weekend_dates = generate_weekend_dates(1)
 
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
@@ -147,10 +147,6 @@ for d in destinations:
       bfi = flights_by_price[min(prices)][0]
       best_flight_element = flights_by_price[min(prices)][1]
 
-
-      #if len(bfi) > 1 :
-      #  del bfi[1]
-
       bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + bfi
       print "BFI: ", bfi
 
@@ -163,6 +159,10 @@ for d in destinations:
       print insert_sql
 
       execute_sql(insert_sql)
+
+      # Select first best flight.
+      best_flight_element.click()
+      time.sleep(2)
 
 db.close()
 driver.close()

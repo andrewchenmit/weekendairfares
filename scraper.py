@@ -65,13 +65,15 @@ def find_best_flights():
   return best_flights
 
 expanded_count = 0
-no_more_similar_flights = False
 def expand_similar_flight():
   best_flights = find_best_flights()
 
   skipped_flights = 0
   for flight in best_flights:
     infos = flight.text.split('\n')
+    #print "INFOS: ", infos
+    if len(infos) < 3:
+      continue
     depart_times = infos[2]
 
     if 'similar flights' in depart_times:
@@ -106,63 +108,80 @@ for d in destinations:
     driver.get(url)
     time.sleep(2)
 
-    # Find set of best flights.
-    best_flights = find_best_flights()
-
-    # If flights were returned...
-    if len(best_flights) > 0:
-
-      # expand the similar flights
-      while no_more_similar_flights == False:
-        no_more_similar_flights = expand_similar_flight()
-
-      # find lowest price
-      flights_by_price = {}
-      prices = []
+    def get_best_flight():
+      global expanded_count
+      expanded_count = 0
+      no_more_similar_flights = False
+      print "getting best flight..."
+      # Find set of best flights.
       best_flights = find_best_flights()
-      last_price = ''
-      for flight in best_flights:
-        infos = flight.text.split('\n')
-        #print "Previous infos: ", infos
-        if '$' in infos[0]:
-          price = get_price(infos[0])
-          #print "d: ", price
-          infos[0] = price
-          #print "Price: ", price
-          last_price = price
-        else:
-          infos = [last_price] + infos
 
-        print "Amended infos: ", infos
+      # If flights were returned...
+      if len(best_flights) > 0:
 
-        price = int(infos[0][1:].replace(',', ''))
+        # expand the similar flights
+        expanded_count = 0
+        while no_more_similar_flights == False:
+          no_more_similar_flights = expand_similar_flight()
 
-        # Add to candidate set if not a similar flights item.
-        if price not in flights_by_price and 'similar' not in infos[2]:
-          flights_by_price[price] = [infos, flight]
-          print "appended price: ", price
-          prices.append(price)
+        # find lowest price
+        flights_by_price = {}
+        prices = []
+        best_flights = find_best_flights()
+        last_price = ''
+        for flight in best_flights:
+          infos = flight.text.split('\n')
+          #print "Previous infos: ", infos
+          if '$' in infos[0]:
+            price = get_price(infos[0])
+            #print "d: ", price
+            infos[0] = price
+            #print "Price: ", price
+            last_price = price
+          else:
+            infos = [last_price] + infos
 
-      # bfi is short for best_flight_info
-      bfi = flights_by_price[min(prices)][0]
-      best_flight_element = flights_by_price[min(prices)][1]
+          # If there were no expansions, delete "round trip"
+          print "EXPANDED: ", expanded_count
+          if expanded_count == 0:
+            del infos[1]
 
-      bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + bfi
-      print "BFI: ", bfi
+          print "Amended infos: ", infos
 
-      delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
+          price = int(infos[0][1:].replace(',', ''))
 
-      execute_sql(delete_sql)
+          # Add to candidate set if not a similar flights item.
+          if price not in flights_by_price and 'similar' not in infos[2]:
+            flights_by_price[price] = [infos, flight]
+            print "appended price: ", price
+            prices.append(price)
 
-      insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[4], bfi[5], bfi[6], bfi[7], bfi[8])
+        # bfi is short for best_flight_info
+        bfi = flights_by_price[min(prices)][0]
+        best_flight_element = flights_by_price[min(prices)][1]
+        return [bfi, best_flight_element]
 
-      print insert_sql
+    there_bfi, there_bfe = get_best_flight()
+    print "there BFI: ", there_bfi
 
-      execute_sql(insert_sql)
+    # Select first best flight.
+    there_bfe.click()
+    time.sleep(2)
 
-      # Select first best flight.
-      best_flight_element.click()
-      time.sleep(2)
+    back_bfi, back_bfe = get_best_flight()
+    print "back BFI: ", back_bfi
+    bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + there_bfi + back_bfi
+    print "BFI: ", bfi
+
+    delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
+
+    execute_sql(delete_sql)
+
+    insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13])
+
+    print insert_sql
+
+    execute_sql(insert_sql)
 
 db.close()
 driver.close()

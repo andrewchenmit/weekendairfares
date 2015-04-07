@@ -41,8 +41,8 @@ def generate_weekend_dates(num_weeks):
 
 #destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'BOS']
 #weekend_dates = generate_weekend_dates(48)
-weekend_dates = [['2015-05-29','2015-05-31']]
-destinations = ['LAS']
+weekend_dates = [['2015-04-17','2015-04-19']]
+destinations = ['AUS']
 #weekend_dates = generate_weekend_dates(1)
 
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
@@ -71,9 +71,9 @@ def expand_similar_flight():
   skipped_flights = 0
   for flight in best_flights:
     infos = flight.text.split('\n')
-    #print "INFOS: ", infos
     if len(infos) < 3:
       continue
+    print "INFOS: ", infos
     depart_times = infos[2]
 
     if 'similar flights' in depart_times:
@@ -131,6 +131,10 @@ for d in destinations:
         last_price = ''
         for flight in best_flights:
           infos = flight.text.split('\n')
+          try:
+            infos.remove('')
+          except:
+            pass
           #print "Previous infos: ", infos
           if '$' in infos[0]:
             price = get_price(infos[0])

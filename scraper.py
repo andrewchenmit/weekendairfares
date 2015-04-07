@@ -41,7 +41,7 @@ def generate_weekend_dates(num_weeks):
 
 #destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'BOS']
 #weekend_dates = generate_weekend_dates(48)
-weekend_dates = [['2015-04-17','2015-04-19']]
+weekend_dates = [['2015-08-21','2015-08-23']]
 destinations = ['AUS']
 #weekend_dates = generate_weekend_dates(1)
 
@@ -71,8 +71,6 @@ def expand_similar_flight():
   skipped_flights = 0
   for flight in best_flights:
     infos = flight.text.split('\n')
-    if len(infos) < 3:
-      continue
     print "INFOS: ", infos
     depart_times = infos[2]
 
@@ -117,7 +115,7 @@ for d in destinations:
       best_flights = find_best_flights()
 
       # If flights were returned...
-      if len(best_flights) > 0:
+      if len(best_flights) > 1:
 
         # expand the similar flights
         expanded_count = 0
@@ -164,28 +162,31 @@ for d in destinations:
         bfi = flights_by_price[min(prices)][0]
         best_flight_element = flights_by_price[min(prices)][1]
         return [bfi, best_flight_element]
+      return [0, 0]
 
+    # If there are flights...
     there_bfi, there_bfe = get_best_flight()
-    print "there BFI: ", there_bfi
+    if there_bfi:
+      #print "there BFI: ", there_bfi
 
-    # Select first best flight.
-    there_bfe.click()
-    time.sleep(2)
+      # Select first best flight.
+      there_bfe.click()
+      time.sleep(2)
 
-    back_bfi, back_bfe = get_best_flight()
-    print "back BFI: ", back_bfi
-    bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + there_bfi + back_bfi
-    print "BFI: ", bfi
+      back_bfi, back_bfe = get_best_flight()
+      #print "back BFI: ", back_bfi
+      bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + there_bfi + back_bfi
+      print "BFI: ", bfi
 
-    delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
+      delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
 
-    execute_sql(delete_sql)
+      execute_sql(delete_sql)
 
-    insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13])
+      insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13])
 
-    print insert_sql
+      print insert_sql
 
-    execute_sql(insert_sql)
+      execute_sql(insert_sql)
 
 db.close()
 driver.close()

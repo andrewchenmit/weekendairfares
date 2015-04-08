@@ -44,6 +44,9 @@ weekend_dates = generate_weekend_dates(48)
 # No flights
 #weekend_dates = [['2015-08-21','2015-08-23']]
 #destinations = ['AUS']
+# Southwest
+#weekend_dates = [['2015-04-24','2015-04-26']]
+#destinations = ['PHX']
 
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
 cursor=db.cursor()
@@ -71,7 +74,7 @@ def expand_similar_flight():
   skipped_flights = 0
   for flight in best_flights:
     infos = flight.text.split('\n')
-    print "INFOS: ", infos
+    print "EXPAND INFOS: ", infos
 
     # Skip lines saying "Show more expensive and longer flights."
     if len(infos) < 3:
@@ -129,22 +132,24 @@ for d in destinations:
         flights_by_price = {}
         prices = []
         best_flights = find_best_flights()
-        last_price = ''
+        last_price = -1
         for flight in best_flights:
           infos = flight.text.split('\n')
           try:
             infos.remove('')
           except:
             pass
-          #print "Previous infos: ", infos
+          print "Previous infos: ", infos
           if '$' in infos[0]:
             price = get_price(infos[0])
             #print "d: ", price
             infos[0] = price
             #print "Price: ", price
             last_price = price
-          else:
+          elif last_price != -1:
             infos = [last_price] + infos
+          else:
+            continue
 
           # If there were no expansions, delete "round trip".
           print "EXPANDED: ", expanded_count
@@ -164,9 +169,10 @@ for d in destinations:
             prices.append(price)
 
         # bfi is short for best_flight_info
-        bfi = flights_by_price[min(prices)][0]
-        best_flight_element = flights_by_price[min(prices)][1]
-        return [bfi, best_flight_element]
+        if len(prices) > 0:
+          bfi = flights_by_price[min(prices)][0]
+          best_flight_element = flights_by_price[min(prices)][1]
+          return [bfi, best_flight_element]
       return [0, 0]
 
     # If there are flights...

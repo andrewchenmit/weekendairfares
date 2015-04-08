@@ -39,8 +39,15 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
-weekend_dates = generate_weekend_dates(48)
+#destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
+#weekend_dates = generate_weekend_dates(48)
+# Missing back operator
+destinations = ['LAS']
+weekend_dates = [['2015-10-30','2015-11-01']]
+
+# Missing back operator
+#destinations = ['AUS']
+#weekend_dates = [['2015-06-12','2015-06-14']]
 # No flights
 #weekend_dates = [['2015-08-21','2015-08-23']]
 #destinations = ['AUS']
@@ -168,6 +175,8 @@ for d in destinations:
           infos = flight.text.split('\n')
           try:
             infos.remove('')
+            infos.remove('')
+            infos.remove('')
           except:
             pass
           print "Previous infos: ", infos
@@ -182,9 +191,8 @@ for d in destinations:
           else:
             continue
 
-          # If there were no expansions, delete "round trip".
-          print "EXPANDED: ", expanded_count
-          if expanded_count == 0:
+          # Delete any 'round trip' text.
+          if 'round' in infos[1]:
             del infos[1]
 
           # Delete layover info. We just want price, time, operator, length, stops.

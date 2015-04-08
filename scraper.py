@@ -95,7 +95,8 @@ def expand_similar_flight():
         expanded_count += 1
         #print infos
         flight.click()
-        time.sleep(1)
+        time.sleep(2)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         return False
   return True
 

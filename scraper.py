@@ -40,7 +40,7 @@ def generate_weekend_dates(num_weeks):
   return weekend_dates
 
 destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
-weekend_dates = generate_weekend_dates(48)
+weekend_dates = generate_weekend_dates(24)
 # 2 similar flights
 #destinations = ['SAN']
 #weekend_dates = [['2015-05-29','2015-05-31']]

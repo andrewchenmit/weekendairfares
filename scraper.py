@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-url_template = 'https://www.google.com/flights/#search;f={origin};t={destination};d={depart_date};r={return_date};ti=t{depart_times},l{arrival_times}'
+url_template = 'https://www.google.com/flights/#search;f={origin};t={destination};d={depart_date};r={return_date};s=0;ti=t{depart_times},l{arrival_times}'
 
 def execute_sql(sql):
   try:

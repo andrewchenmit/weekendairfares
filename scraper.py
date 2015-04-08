@@ -3,7 +3,10 @@ import time
 import MySQLdb
 import unicodedata
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 url_template = 'https://www.google.com/flights/#search;f={origin};t={destination};d={depart_date};r={return_date};ti=t{depart_times},l{arrival_times}'
 
@@ -20,11 +23,8 @@ def execute_sql(sql):
 # Choose lowest price.
 def get_price(price):
   price = unicodedata.normalize('NFKD', price).encode('ascii','ignore')
-  #print "a: ", price
   infos_parts = price.split('$')
-  #print "b: ", infos_parts
   price = '$' + infos_parts[1]
-  #print "c: ", price
   return price
 
 def generate_weekend_dates(num_weeks):
@@ -39,22 +39,23 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-#destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
-#weekend_dates = generate_weekend_dates(48)
+destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
+weekend_dates = generate_weekend_dates(48)
 # No flights
 #weekend_dates = [['2015-08-21','2015-08-23']]
 #destinations = ['AUS']
 # Southwest
 #weekend_dates = [['2015-04-24','2015-04-26']]
 #destinations = ['PHX']
-# ??
-weekend_dates = [['2015-08-21','2015-08-23']]
-destinations = ['SEA']
+# Expansion past fold
+#weekend_dates = [['2015-08-21','2015-08-23']]
+#destinations = ['SEA']
 
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
 cursor=db.cursor()
 
 driver = webdriver.Chrome('/Applications/chromedriver')
+#driver.implicitly_wait(1)
 
 def find_best_flights():
   # Find the set of best flights. Try the Best flights module.
@@ -68,11 +69,13 @@ def find_best_flights():
   if len(best_flights) == 0:
    best_flights = []
 
+  time.sleep(0.1)
   return best_flights
 
 expanded_count = 0
 def expand_similar_flight():
   best_flights = find_best_flights()
+  print "BEST FLIGHTS: ", best_flights
 
   skipped_flights = 0
   for flight in best_flights:
@@ -87,13 +90,10 @@ def expand_similar_flight():
     if 'similar flights' in depart_times:
       # if less flights have been skipped than expanded flights, skip
       global expanded_count
-      #print "Skipped flights: ", skipped_flights
-      #print "Expanded count: ", expanded_count
       if skipped_flights < expanded_count:
         skipped_flights += 1
       else:
         expanded_count += 1
-        #print infos
         flight.click()
         time.sleep(2)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -109,7 +109,6 @@ for d in destinations:
     select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
     execute_sql(select_sql)
     sql_result = cursor.fetchone()
-    print "SQL: ", sql_result
     if sql_result is not None:
       continue
 
@@ -123,16 +122,34 @@ for d in destinations:
 
     print url
 
-    # Wait 3s for results to load.
+    # Load page.
     driver.get(url)
-    time.sleep(3)
 
     def get_best_flight():
+      page_loaded = False
+      while not page_loaded:
+        time.sleep(0.2)
+        outbound_elem = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '.PNIT24B-Fb-e')))
+        outbound_is_hidden = outbound_elem.get_attribute('aria-hidden')
+
+        no_flights_elem = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '.PNIT24B-Ob-a')))
+        no_flights_is_hidden = no_flights_elem.get_attribute('aria-hidden')
+
+        load_elem = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '.PNIT24B-e-q')))
+        loader_is_hidden = load_elem.get_attribute('aria-hidden')
+
+        if (not outbound_is_hidden or not no_flights_is_hidden) and loader_is_hidden:
+          page_loaded = True
+
       global expanded_count
       expanded_count = 0
       no_more_similar_flights = False
       # Find set of best flights.
       best_flights = find_best_flights()
+      print "GETBEST best_flights: ", best_flights
 
       # If flights were returned...
       if len(best_flights) > 0:
@@ -205,7 +222,11 @@ for d in destinations:
 
 
       # Select return best flight.
-      back_bfe.click()
+      try:
+        back_bfe.click()
+      except:
+        time.sleep(1)
+        back_bfe.click()
       time.sleep(1)
 
       # Collect book url

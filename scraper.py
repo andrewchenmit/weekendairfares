@@ -39,12 +39,15 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-#destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
-#weekend_dates = generate_weekend_dates(48)
-# Missing back operator
-destinations = ['LAS']
-weekend_dates = [['2015-10-30','2015-11-01']]
+destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
+weekend_dates = generate_weekend_dates(48)
+# 2 similar flights
+#destinations = ['SAN']
+#weekend_dates = [['2015-05-29','2015-05-31']]
 
+# Excess round trip
+#destinations = ['LAS']
+#weekend_dates = [['2015-10-30','2015-11-01']]
 # Missing back operator
 #destinations = ['AUS']
 #weekend_dates = [['2015-06-12','2015-06-14']]
@@ -86,7 +89,11 @@ def expand_similar_flight():
 
   skipped_flights = 0
   for flight in best_flights:
-    infos = flight.text.split('\n')
+    try:
+      infos = flight.text.split('\n')
+    except:
+      infos = flight.text.split('\n')
+
     print "EXPAND INFOS: ", infos
 
     # Skip lines saying "Show more expensive and longer flights."
@@ -202,7 +209,7 @@ for d in destinations:
           price = int(infos[0][1:].replace(',', ''))
 
           # Add to candidate set if not a similar flights item.
-          if price not in flights_by_price and 'similar' not in infos[2]:
+          if price not in flights_by_price and 'similar' not in infos[1] and 'similar' not in infos[2]:
             flights_by_price[price] = [infos, flight]
             print "appended price: ", price
             prices.append(price)

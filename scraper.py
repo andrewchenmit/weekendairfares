@@ -39,14 +39,17 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
-weekend_dates = generate_weekend_dates(48)
+#destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
+#weekend_dates = generate_weekend_dates(48)
 # No flights
 #weekend_dates = [['2015-08-21','2015-08-23']]
 #destinations = ['AUS']
 # Southwest
 #weekend_dates = [['2015-04-24','2015-04-26']]
 #destinations = ['PHX']
+# ??
+weekend_dates = [['2015-08-21','2015-08-23']]
+destinations = ['SEA']
 
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
 cursor=db.cursor()
@@ -99,6 +102,16 @@ def expand_similar_flight():
 
 for d in destinations:
   for weekend in weekend_dates:
+
+    check_date = datetime.date.today().isoformat()
+
+    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
+    execute_sql(select_sql)
+    sql_result = cursor.fetchone()
+    print "SQL: ", sql_result
+    if sql_result is not None:
+      continue
+
     url = url_template.format(
       origin='SFO',
       destination=d,
@@ -186,7 +199,7 @@ for d in destinations:
 
       back_bfi, back_bfe = get_best_flight()
       print "back BFI: ", back_bfi
-      bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + there_bfi + back_bfi
+      bfi = [check_date, weekend[0], weekend[1], d] + there_bfi + back_bfi
       print "BFI: ", bfi
 
 
@@ -196,16 +209,20 @@ for d in destinations:
 
       # Collect book url
       book_url = driver.current_url
+    # If not flights...
+    else:
+      bfi = [check_date, weekend[0], weekend[1], d] + ['n/a'] * 10
+      book_url = 'n/a'
 
-      delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
+    delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
 
-      execute_sql(delete_sql)
+    execute_sql(delete_sql)
 
-      insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], book_url)
+    insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], book_url)
 
-      print insert_sql
+    print insert_sql
 
-      execute_sql(insert_sql)
+    execute_sql(insert_sql)
 
 db.close()
 driver.close()

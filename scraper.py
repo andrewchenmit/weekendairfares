@@ -39,11 +39,11 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-#destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'BOS']
-#weekend_dates = generate_weekend_dates(48)
-weekend_dates = [['2015-08-21','2015-08-23']]
-destinations = ['AUS']
-#weekend_dates = generate_weekend_dates(1)
+destinations = ['AUS', 'PDX', 'CUN', 'YVR', 'LAS', 'SAN', 'PHX', 'SLC', 'SEA', 'LAX', 'SJD']
+weekend_dates = generate_weekend_dates(48)
+# No flights
+#weekend_dates = [['2015-08-21','2015-08-23']]
+#destinations = ['AUS']
 
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
 cursor=db.cursor()
@@ -60,7 +60,7 @@ def find_best_flights():
 
   # Keep going if there are no flights returned at all.
   if len(best_flights) == 0:
-   best_flights = [['no results']]
+   best_flights = []
 
   return best_flights
 
@@ -72,6 +72,10 @@ def expand_similar_flight():
   for flight in best_flights:
     infos = flight.text.split('\n')
     print "INFOS: ", infos
+
+    # Skip lines saying "Show more expensive and longer flights."
+    if len(infos) < 3:
+      continue
     depart_times = infos[2]
 
     if 'similar flights' in depart_times:
@@ -97,25 +101,24 @@ for d in destinations:
       destination=d,
       depart_date=weekend[0],
       return_date=weekend[1],
-      depart_times='1900-2400',
-      arrival_times='1200-2200')
+      depart_times='2000-2400',
+      arrival_times='1600-2200')
 
     print url
 
-    # Wait 2s for results to load.
+    # Wait 3s for results to load.
     driver.get(url)
-    time.sleep(2)
+    time.sleep(3)
 
     def get_best_flight():
       global expanded_count
       expanded_count = 0
       no_more_similar_flights = False
-      print "getting best flight..."
       # Find set of best flights.
       best_flights = find_best_flights()
 
       # If flights were returned...
-      if len(best_flights) > 1:
+      if len(best_flights) > 0:
 
         # expand the similar flights
         expanded_count = 0
@@ -143,11 +146,13 @@ for d in destinations:
           else:
             infos = [last_price] + infos
 
-          # If there were no expansions, delete "round trip"
+          # If there were no expansions, delete "round trip".
           print "EXPANDED: ", expanded_count
           if expanded_count == 0:
             del infos[1]
 
+          # Delete layover info. We just want price, time, operator, length, stops.
+          infos = infos[:5]
           print "Amended infos: ", infos
 
           price = int(infos[0][1:].replace(',', ''))
@@ -167,22 +172,30 @@ for d in destinations:
     # If there are flights...
     there_bfi, there_bfe = get_best_flight()
     if there_bfi:
-      #print "there BFI: ", there_bfi
+      print "there BFI: ", there_bfi
 
       # Select first best flight.
       there_bfe.click()
       time.sleep(2)
 
       back_bfi, back_bfe = get_best_flight()
-      #print "back BFI: ", back_bfi
+      print "back BFI: ", back_bfi
       bfi = [datetime.date.today().isoformat(), weekend[0], weekend[1], d] + there_bfi + back_bfi
       print "BFI: ", bfi
+
+
+      # Select return best flight.
+      back_bfe.click()
+      time.sleep(1)
+
+      # Collect book url
+      book_url = driver.current_url
 
       delete_sql="""DELETE FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (bfi[0], bfi[1], bfi[3])
 
       execute_sql(delete_sql)
 
-      insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13])
+      insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], book_url)
 
       print insert_sql
 

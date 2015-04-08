@@ -108,6 +108,7 @@ def expand_similar_flight():
         skipped_flights += 1
       else:
         expanded_count += 1
+        driver.execute_script("var elms = document.getElementsByClassName('tooltipContent'); for (var i=0;i<elms.length;i++) {elms[i].style.display = 'none' }");
         flight.click()
         time.sleep(2)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")

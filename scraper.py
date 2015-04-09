@@ -70,11 +70,11 @@ driver = webdriver.Chrome('/Applications/chromedriver')
 
 def find_best_flights():
   # Find the set of best flights. Try the Best flights module.
-  best_flights = driver.find_elements_by_css_selector('.PNIT24B-c-Qb')
+  best_flights = driver.find_elements_by_css_selector('.PNIT24B-c-Nb')
 
   # If there isn't a Best flights module, use the regular list.
   if len(best_flights) == 0:
-    best_flights = driver.find_elements_by_css_selector('.PNIT24B-c-H')
+    best_flights = driver.find_elements_by_css_selector('.PNIT24B-c-G')
 
   # Keep going if there are no flights returned at all.
   if len(best_flights) == 0:
@@ -122,11 +122,14 @@ for d in destinations:
 
     check_date = datetime.date.today().isoformat()
 
-    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
-    execute_sql(select_sql)
-    sql_result = cursor.fetchone()
-    if sql_result is not None:
-      continue
+    # Skip if already in Cloud SQL.
+
+    #select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
+    #execute_sql(select_sql)
+    #sql_result = cursor.fetchone()
+    #if sql_result is not None:
+    #  continue
+    #################################
 
     url = url_template.format(
       origin='SFO',
@@ -259,7 +262,7 @@ for d in destinations:
 
     insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], book_url)
 
-    print insert_sql
+    print insert_sql.encode('utf8')
 
     execute_sql(insert_sql)
 

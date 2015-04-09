@@ -1,0 +1,1 @@
+01 00,23 * * * ~/Documents/projects/weekendairfares/scraper.py 

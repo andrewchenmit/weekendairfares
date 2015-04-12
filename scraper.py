@@ -30,7 +30,8 @@ def get_price(price):
 
 def generate_weekend_dates(num_weeks):
   weekend_dates = []
-  nearest_friday = datetime.date.today() + datetime.timedelta( (4-datetime.date.today().weekday()) %7)
+  starting_date = datetime.date(2015,4,4)
+  nearest_friday = starting_date + datetime.timedelta( (4-starting_date.weekday()) %7)
   for i in xrange(num_weeks):
     friday = nearest_friday + datetime.timedelta(i*7)
     sunday = friday + datetime.timedelta(2)
@@ -65,7 +66,8 @@ weekend_dates = generate_weekend_dates(24)
 db = MySQLdb.connect('173.194.80.20','root','roos','weekendfares')
 cursor=db.cursor()
 
-driver = webdriver.Chrome('/Applications/chromedriver')
+#driver = webdriver.Chrome('/Applications/chromedriver')
+driver = webdriver.Firefox()
 #driver.implicitly_wait(1)
 
 def find_best_flights():
@@ -124,11 +126,11 @@ for d in destinations:
 
     # Skip if already in Cloud SQL.
 
-    #select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
-    #execute_sql(select_sql)
-    #sql_result = cursor.fetchone()
-    #if sql_result is not None:
-    #  continue
+    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
+    execute_sql(select_sql)
+    sql_result = cursor.fetchone()
+    if sql_result is not None:
+      continue
     #################################
 
     url = url_template.format(

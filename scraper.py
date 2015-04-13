@@ -118,23 +118,22 @@ def expand_similar_flight():
         return False
   return True
 
-
+check_date = datetime.date.today().isoformat()
 for d in destinations:
   for weekend in weekend_dates:
 
-    check_date = datetime.date.today().isoformat()
 
     # Skip if already in Cloud SQL.
 
-    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
-    execute_sql(select_sql)
-    sql_result = cursor.fetchone()
-    if sql_result is not None:
-      continue
+    #select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and destination_airport = '%s'""" % (check_date, weekend[0], d)
+    #execute_sql(select_sql)
+    #sql_result = cursor.fetchone()
+    #if sql_result is not None:
+    #  continue
     #################################
 
     url = url_template.format(
-      origin='SFO',
+      origin='SFO,SJC',
       destination=d,
       depart_date=weekend[0],
       return_date=weekend[1],
@@ -262,11 +261,17 @@ for d in destinations:
 
     execute_sql(delete_sql)
 
-    insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], book_url)
+    insert_sql="""INSERT INTO fares (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url, latest) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], book_url, 1)
 
     print insert_sql.encode('utf8')
 
     execute_sql(insert_sql)
+
+# Update which fares are latest.
+update_sql="""UPDATE fares SET latest='1' WHERE check_date = '%s'""" % (check_date)
+execute_sql(update_sql)
+update2_sql="""UPDATE fares SET latest='0' WHERE check_date != '%s'""" % (check_date)
+execute_sql(update2_sql)
 
 db.close()
 driver.close()

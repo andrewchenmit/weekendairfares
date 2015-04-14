@@ -41,7 +41,7 @@ def generate_weekend_dates(num_weeks):
       ])
   return weekend_dates
 
-destinations = ['LAS', 'LAX', 'PDX', 'PHX', 'SAN', 'SEA', 'SLC', 'YVR']
+destinations = ['PDX', 'SAN', 'YYJ', 'YVR', 'PHX,AZA', 'SEA', 'SLC', 'LAS', 'LAX', 'DEN', 'PSP']
 weekend_dates = generate_weekend_dates(24)
 # 2 similar flights
 #destinations = ['SAN']

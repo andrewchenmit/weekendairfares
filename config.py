@@ -19,8 +19,8 @@ two_day_weekend = config_utility.ScraperConfig([
   'fares'
 )
 
-three_day_dests = config_utility.ScraperConfig([
-  'SJD',
+three_day_weekend = config_utility.ScraperConfig([
+  #'SJD',
   'YYC',
   'PVR',
   'AUS',

@@ -10,49 +10,30 @@ class ScraperConfig:
     self.return_arrival_period = return_arrival_period
     self.sql_table = sql_table
 
-def generate_weekend_dates(num_weeks):
-  weekend_dates = []
-  starting_date = datetime.date(2015,4,4)
-  nearest_friday = starting_date + datetime.timedelta( (4-starting_date.weekday()) %7)
-  for i in xrange(num_weeks):
-    friday = nearest_friday + datetime.timedelta(i*7)
-    sunday = friday + datetime.timedelta(2)
-    weekend_dates.append([
-      str(friday.year)+'-'+str('{:02d}'.format(friday.month))+'-'+str('{:02d}'.format(friday.day)),
-      str(sunday.year)+'-'+str('{:02d}'.format(sunday.month))+'-'+str('{:02d}'.format(sunday.day))
-      ])
-  return weekend_dates
+def format_date(date):
+  return str(date.year)+'-'+str('{:02d}'.format(date.month))+'-'+str('{:02d}'.format(date.day))
 
-def generate_three_day_weekend_dates(num_weeks):
-  weekend_dates = []
-  starting_date = datetime.date(2015,4,4)
+def gen_date_pairs(day1, day2, num_weeks):
+  result = []
+  weekend_dates = generate_weekend_dates(num_weeks)
+  for i in xrange(num_weeks):
+    result.append([weekend_dates[day1][i], weekend_dates[day2][i]])
+  return result
+
+def generate_weekend_dates(num_weeks):
+  weekend_dates = {'thursday': [], 'friday': [], 'saturday': [], 'sunday': [], 'monday': [], 'tuesday': []}
+  starting_date = datetime.date.today()
   nearest_thursday = starting_date + datetime.timedelta( (3-starting_date.weekday()) %7)
+
   for i in xrange(num_weeks):
     thursday = nearest_thursday + datetime.timedelta(i*7)
-    friday = thursday + datetime.timedelta(1)
-    sunday = friday + datetime.timedelta(2)
-    monday = sunday + datetime.timedelta(1)
+    weekend_dates['thursday'].append(format_date(thursday))
+    weekend_dates['friday'].append(format_date(thursday + datetime.timedelta(1)))
+    weekend_dates['saturday'].append(format_date(thursday + datetime.timedelta(2)))
+    weekend_dates['sunday'].append(format_date(thursday + datetime.timedelta(3)))
+    weekend_dates['monday'].append(format_date(thursday + datetime.timedelta(4)))
+    weekend_dates['tuesday'].append(format_date(thursday + datetime.timedelta(5)))
 
-    weekend_dates.append([
-      str(thursday.year)+'-'+str('{:02d}'.format(thursday.month))+'-'+str('{:02d}'.format(thursday.day)),
-      str(sunday.year)+'-'+str('{:02d}'.format(sunday.month))+'-'+str('{:02d}'.format(sunday.day))
-      ])
-    weekend_dates.append([
-      str(friday.year)+'-'+str('{:02d}'.format(friday.month))+'-'+str('{:02d}'.format(friday.day)),
-      str(monday.year)+'-'+str('{:02d}'.format(monday.month))+'-'+str('{:02d}'.format(monday.day))
-      ])
   return weekend_dates
 
-def generate_fridays_to_mondays(num_weeks):
-  weekend_dates = []
-  starting_date = datetime.date(2015,4,4)
-  nearest_friday = starting_date + datetime.timedelta( (4-starting_date.weekday()) %7)
-  for i in xrange(num_weeks):
-    friday = nearest_friday + datetime.timedelta(i*7)
-    monday = friday + datetime.timedelta(3)
 
-    weekend_dates.append([
-      str(friday.year)+'-'+str('{:02d}'.format(friday.month))+'-'+str('{:02d}'.format(friday.day)),
-      str(monday.year)+'-'+str('{:02d}'.format(monday.month))+'-'+str('{:02d}'.format(monday.day))
-      ])
-  return weekend_dates

@@ -6,8 +6,8 @@ friday_evening_to_sunday_evening = utility.ScraperConfig(
   utility.generate_weekend_dates(24),
   '2000-2400',
   '1800-2200',
-  'evening',
-  'evening',
+  'Friday evening',
+  'Sunday evening',
   'fares'
 )
 
@@ -16,8 +16,8 @@ friday_evening_to_monday_morning = utility.ScraperConfig(
   utility.generate_fridays_to_mondays(24),
   '2000-2400',
   '0400-0800',
-  'evening',
-  'morning',
+  'Friday evening',
+  'Monday morning',
   'fares'
 )
 

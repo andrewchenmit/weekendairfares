@@ -15,7 +15,7 @@ short_dist_dests = [
 ]
 
 medium_dist_dests = [
-  #'SJD',
+  'SJD',
   'YYC',
   'PVR',
   'AUS',

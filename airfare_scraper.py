@@ -24,6 +24,8 @@ class AirfareScraper:
     self.date_pairs = config.date_pairs
     self.depart_times = config.depart_times
     self.arrival_times = config.arrival_times
+    self.outbound_depart_period = config.outbound_depart_period
+    self.return_arrival_period = config.return_arrival_period
     self.sql_table = config.sql_table
     self.overwrite = overwrite
 
@@ -39,8 +41,8 @@ class AirfareScraper:
       print e
 
   # in_cloudSQL: Check if pending scrape is already in Cloud SQL.
-  def in_cloudSQL(self, check_date, there_date, back_date, destination_airport):
-    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and destination_airport = '%s'""" % (check_date, there_date, back_date, destination_airport)
+  def in_cloudSQL(self, check_date, there_date, back_date, outbound_depart_period, return_arrival_period, destination_airport):
+    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and there_period = '%s' and back_period = '%s' and destination_airport = '%s'""" % (check_date, there_date, back_date, outbound_depart_period, return_arrival_period, destination_airport)
     self.execute_sql(select_sql)
     return self.cursor.fetchone()
 
@@ -190,7 +192,7 @@ class AirfareScraper:
 
         # Skip if configured to skip fares already in Cloud SQL.
         if not self.overwrite:
-          if self.in_cloudSQL(self.check_date, date_pair[0], date_pair[1], d) is not None:
+          if self.in_cloudSQL(self.check_date, date_pair[0], date_pair[1], self.outbound_depart_period, self.return_arrival_period, d) is not None:
             continue
 
         # Load page.
@@ -240,7 +242,7 @@ class AirfareScraper:
         delete_sql="""DELETE FROM %s WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and destination_airport = '%s'""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3])
         self.execute_sql(delete_sql)
 
-        insert_sql="""INSERT INTO %s (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url, latest) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], bfi[14], bfi[15])
+        insert_sql="""INSERT INTO %s (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url, latest, there_period, back_period) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], bfi[14], bfi[15], self.outbound_depart_period, self.return_arrival_period)
         print insert_sql.encode('utf8')
         self.execute_sql(insert_sql)
 

@@ -63,10 +63,10 @@ friday_evening_to_tuesday_morning = utility.ScraperConfig(
 )
 
 configs_to_scrape = [
-  friday_evening_to_sunday_evening,
-  friday_evening_to_monday_morning,
   thursday_evening_to_sunday_evening,
   thursday_evening_to_monday_morning,
   friday_evening_to_monday_evening,
-  friday_evening_to_tuesday_morning
+  friday_evening_to_tuesday_morning,
+  friday_evening_to_sunday_evening,
+  friday_evening_to_monday_morning
 ]

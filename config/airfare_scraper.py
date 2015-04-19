@@ -42,7 +42,7 @@ class AirfareScraper:
 
   # in_cloudSQL: Check if pending scrape is already in Cloud SQL.
   def in_cloudSQL(self, check_date, there_date, back_date, outbound_depart_period, return_arrival_period, destination_airport):
-    select_sql="""SELECT * FROM fares WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and there_period = '%s' and back_period = '%s' and destination_airport = '%s'""" % (check_date, there_date, back_date, outbound_depart_period, return_arrival_period, destination_airport)
+    select_sql="""SELECT * FROM %s WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and there_period = '%s' and back_period = '%s' and destination_airport = '%s'""" % (self.sql_table, check_date, there_date, back_date, outbound_depart_period, return_arrival_period, destination_airport)
     self.execute_sql(select_sql)
     return self.cursor.fetchone()
 

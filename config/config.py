@@ -2,7 +2,7 @@ import times
 import destinations
 import utility
 
-weeks = 16
+weeks = 12
 
 friday_evening_to_sunday_evening = utility.ScraperConfig(
   destinations.short_dist_dests,

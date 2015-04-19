@@ -9,8 +9,8 @@ friday_evening_to_sunday_evening = utility.ScraperConfig(
   utility.gen_date_pairs('friday', 'sunday', weeks),
   times.depart_evening,
   times.arrive_evening,
-  'Friday evening',
-  'Sunday evening',
+  'Fri evening',
+  'Sun evening',
   'fares'
 )
 
@@ -19,8 +19,8 @@ friday_evening_to_monday_morning = utility.ScraperConfig(
   utility.gen_date_pairs('friday', 'monday', weeks),
   times.depart_evening,
   times.arrive_morning,
-  'Friday evening',
-  'Monday morning',
+  'Fri evening',
+  'Mon morning',
   'fares'
 )
 
@@ -29,8 +29,8 @@ thursday_evening_to_sunday_evening = utility.ScraperConfig(
   utility.gen_date_pairs('thursday', 'sunday', weeks),
   times.depart_evening,
   times.arrive_evening,
-  'Thursday evening',
-  'Sunday evening',
+  'Thu evening',
+  'Sun evening',
   '3dayweekends'
 )
 
@@ -39,8 +39,8 @@ thursday_evening_to_monday_morning = utility.ScraperConfig(
   utility.gen_date_pairs('thursday', 'monday', weeks),
   times.depart_evening,
   times.arrive_morning,
-  'Thursday evening',
-  'Monday morning',
+  'Thu evening',
+  'Mon morning',
   '3dayweekends'
 )
 
@@ -49,8 +49,8 @@ friday_evening_to_monday_evening = utility.ScraperConfig(
   utility.gen_date_pairs('friday', 'monday', weeks),
   times.depart_evening,
   times.arrive_evening,
-  'Friday evening',
-  'Monday evening',
+  'Fri evening',
+  'Mon evening',
   '3dayweekends'
 )
 
@@ -59,8 +59,8 @@ friday_evening_to_tuesday_morning = utility.ScraperConfig(
   utility.gen_date_pairs('friday', 'tuesday', weeks),
   times.depart_evening,
   times.arrive_morning,
-  'Friday evening',
-  'Tuesday morning',
+  'Fri evening',
+  'Tue morning',
   '3dayweekends'
 )
 

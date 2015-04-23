@@ -18,6 +18,7 @@ class AirfareScraper:
     self.url_template = 'https://www.google.com/flights/#search;f={origin};t={destination};d={depart_date};r={return_date};s=0;ti=t{depart_times},l{arrival_times}'
     self.check_date = datetime.date.today().isoformat()
     self.expanded_count = 0
+    self.retry_count = 0
 
     # Set configurables.
     self.dests = config.dests
@@ -186,7 +187,59 @@ class AirfareScraper:
         return [bfi, best_flight_element]
     return [0, 0]
 
-  def scrape(self):
+  def scrape(self, d, date_pair):
+    # Load page.
+    url = self.url_template.format(
+        origin = self.origin,
+        destination = d,
+        depart_date = date_pair[0],
+        return_date = date_pair[1],
+        depart_times = self.depart_times,
+        arrival_times = self.arrival_times)
+    print url
+    self.driver.get(url)
+
+    # Scrape for the best roundtrip flight.
+    bfi_prefix = [self.check_date, date_pair[0], date_pair[1], d]
+    bfi_suffix = [1]
+    # If there are flights...
+    there_bfi, there_bfe = self.get_best_flight()
+    if there_bfi:
+      print "there BFI: ", there_bfi
+
+      # Select first best flight.
+      there_bfe.click()
+      time.sleep(2)
+
+      back_bfi, back_bfe = self.get_best_flight()
+      print "back BFI: ", back_bfi
+
+      # Select return best flight.
+      back_bfe.click()
+      time.sleep(2)
+
+      # Collect book url
+      book_url = self.driver.current_url
+
+
+    # If there are no flights...
+    else:
+      there_bfi = ['n/a'] * 5
+      back_bfi = ['n/a'] * 5
+      book_url = 'n/a'
+
+    bfi = bfi_prefix + there_bfi + back_bfi + [book_url] + bfi_suffix
+    print "BFI: ", bfi
+
+    # Insert best roundtrip flight into Cloud SQL, replacing any previous version.
+    delete_sql="""DELETE FROM %s WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and destination_airport = '%s'""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3])
+    self.execute_sql(delete_sql)
+
+    insert_sql="""INSERT INTO %s (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url, latest, there_period, back_period) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], bfi[14], bfi[15], self.outbound_depart_period, self.return_arrival_period)
+    print insert_sql.encode('utf8')
+    self.execute_sql(insert_sql)
+
+  def scrape_all(self):
     for d in self.dests:
       for date_pair in self.date_pairs:
 
@@ -195,56 +248,13 @@ class AirfareScraper:
           if self.in_cloudSQL(self.check_date, date_pair[0], date_pair[1], self.outbound_depart_period, self.return_arrival_period, d) is not None:
             continue
 
-        # Load page.
-        url = self.url_template.format(
-            origin = self.origin,
-            destination = d,
-            depart_date = date_pair[0],
-            return_date = date_pair[1],
-            depart_times = self.depart_times,
-            arrival_times = self.arrival_times)
-        print url
-        self.driver.get(url)
+        # Scrape destination-itinerary.
+        try:
+          self.scrape(d, date_pair)
+        except:
+          self.retry_count += 1
+          self.scrape(d, date_pair)
 
-        # Scrape for the best roundtrip flight.
-        bfi_prefix = [self.check_date, date_pair[0], date_pair[1], d]
-        bfi_suffix = [1]
-        # If there are flights...
-        there_bfi, there_bfe = self.get_best_flight()
-        if there_bfi:
-          print "there BFI: ", there_bfi
-
-          # Select first best flight.
-          there_bfe.click()
-          time.sleep(2)
-
-          back_bfi, back_bfe = self.get_best_flight()
-          print "back BFI: ", back_bfi
-
-          # Select return best flight.
-          back_bfe.click()
-          time.sleep(2)
-
-          # Collect book url
-          book_url = self.driver.current_url
-
-
-        # If there are no flights...
-        else:
-          there_bfi = ['n/a'] * 5
-          back_bfi = ['n/a'] * 5
-          book_url = 'n/a'
-
-        bfi = bfi_prefix + there_bfi + back_bfi + [book_url] + bfi_suffix
-        print "BFI: ", bfi
-
-        # Insert best roundtrip flight into Cloud SQL, replacing any previous version.
-        delete_sql="""DELETE FROM %s WHERE check_date = '%s' and there_date = '%s' and back_date = '%s' and destination_airport = '%s'""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3])
-        self.execute_sql(delete_sql)
-
-        insert_sql="""INSERT INTO %s (check_date, there_date, back_date, destination_airport, price, there_times, there_operator, there_time, there_stops, back_times, back_operator, back_time, back_stops, book_url, latest, there_period, back_period) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (self.sql_table, bfi[0], bfi[1], bfi[2], bfi[3], bfi[9], bfi[5], bfi[6], bfi[7], bfi[8], bfi[10], bfi[11], bfi[12], bfi[13], bfi[14], bfi[15], self.outbound_depart_period, self.return_arrival_period)
-        print insert_sql.encode('utf8')
-        self.execute_sql(insert_sql)
 
     # Update which fares are latest.
     update_sql="""UPDATE %s SET latest='1' WHERE check_date = '%s'""" % (self.sql_table, self.check_date)
@@ -255,3 +265,6 @@ class AirfareScraper:
     # Clean up database and driver.
     self.db.close()
     self.driver.close()
+
+    # Output stats
+    print "Retry count: ", self.retry_count

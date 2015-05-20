@@ -1,7 +1,6 @@
 short_dist_dests = [
   'PDX',
   'SAN',
-  'YYJ',
   'YVR',
   'PHX',
   'SEA',
@@ -13,12 +12,9 @@ short_dist_dests = [
 ]
 
 medium_dist_dests = [
-  'SJD',
   'YYC',
-  'PVR',
   'AUS',
   'SAT',
   'ORD,MDW',
   'STL',
-  'JAC'
 ]

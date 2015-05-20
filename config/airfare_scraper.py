@@ -2,6 +2,7 @@ import datetime
 import time
 import MySQLdb
 import unicodedata
+import css_targets
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -50,11 +51,11 @@ class AirfareScraper:
   # find_best_flights: Scrape current page for flights data of best flights.
   def find_best_flights(self):
     # Find the set of best flights. Try the Best flights module.
-    best_flights = self.driver.find_elements_by_css_selector('.PNIT24B-c-Nb')
+    best_flights = self.driver.find_elements_by_css_selector(css_targets.BEST_FLIGHTS)
 
     # If there isn't a Best flights module, use the regular list.
     if len(best_flights) == 0:
-      best_flights = self.driver.find_elements_by_css_selector('.PNIT24B-c-G')
+      best_flights = self.driver.find_elements_by_css_selector(css_targets.FLIGHTS)
 
     # Keep going if there are no flights returned at all.
     if len(best_flights) == 0:
@@ -113,15 +114,15 @@ class AirfareScraper:
       time.sleep(0.2)
 
       outbound_elem = WebDriverWait(self.driver, 5).until(
-          EC.presence_of_element_located((By.CSS_SELECTOR, '.PNIT24B-Fb-e')))
+          EC.presence_of_element_located((By.CSS_SELECTOR, css_targets.OUTBOUND)))
       outbound_is_hidden = outbound_elem.get_attribute('aria-hidden')
 
       no_flights_elem = WebDriverWait(self.driver, 5).until(
-          EC.presence_of_element_located((By.CSS_SELECTOR, '.PNIT24B-Ob-a')))
+          EC.presence_of_element_located((By.CSS_SELECTOR, css_targets.NO_FLIGHTS)))
       no_flights_is_hidden = no_flights_elem.get_attribute('aria-hidden')
 
       load_elem = WebDriverWait(self.driver, 5).until(
-          EC.presence_of_element_located((By.CSS_SELECTOR, '.PNIT24B-e-q')))
+          EC.presence_of_element_located((By.CSS_SELECTOR, css_targets.LOAD)))
       loader_is_hidden = load_elem.get_attribute('aria-hidden')
 
       if (not outbound_is_hidden or not no_flights_is_hidden) and loader_is_hidden:
